@@ -1,22 +1,25 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
   <meta charset="UTF-8" />
-  <title>Cyberball 6 jugadores con Firebase</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <title>Cyberball x6</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+  <style>
+    canvas { border: 1px solid black; display: block; margin: 20px auto; }
+    #controls { text-align: center; }
+  </style>
 </head>
 <body>
-  <h1>Cyberball 6 jugadores (Firebase)</h1>
   <div id="controls">
-    <label for="nameInput">Tu nombre (Player1 a Player6):</label>
-    <input id="nameInput" type="text" placeholder="Player1" />
+    <input type="text" id="nameInput" placeholder="Escribí tu nombre (Player1...6)" />
     <button id="joinBtn">Unirse</button>
     <button id="resetBtn">Reiniciar</button>
+    <button id="reportBtn">Ver Reporte</button> <!-- ← Este va acá -->
+    <div id="status">Esperando conexión...</div>
   </div>
-  <div id="status"></div>
   <canvas id="gameCanvas" width="800" height="600"></canvas>
   <script src="script.js"></script>
 </body>
 </html>
+

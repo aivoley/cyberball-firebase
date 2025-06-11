@@ -1,0 +1,22 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #fafafa;
+}
+#controls {
+  margin: 12px;
+}
+canvas {
+  border: 2px solid #333;
+  margin-top: 10px;
+  background-color: #fff;
+}
+button {
+  margin-left: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+#status {
+  margin-top: 10px;
+  font-weight: bold;
+}

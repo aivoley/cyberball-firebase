@@ -1,11 +1,12 @@
 // — CONFIGURÁ TUS CREDENCIALES DE FIREBASE
 const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_PROYECTO.firebaseapp.com",
-  projectId: "TU_PROYECTO",
-  storageBucket: "TU_PROYECTO.appspot.com",
-  messagingSenderId: "TU_SENDER_ID",
-  appId: "TU_APP_ID"
+   apiKey: "AIzaSyCmn9mkX9M4BSz1xH2dAzTv4zfto3yCVZg",
+    authDomain: "cyberball-firebase.firebaseapp.com",
+    projectId: "cyberball-firebase",
+    storageBucket: "cyberball-firebase.firebasestorage.app",
+    messagingSenderId: "293555459308",
+    appId: "1:293555459308:web:d76aec886cbb21709bc1c9",
+    measurementId: "G-4X79M02HXR"
 };
 
 firebase.initializeApp(firebaseConfig);

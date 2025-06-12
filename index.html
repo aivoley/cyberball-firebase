@@ -1,10 +1,49 @@
-<input type="text" id="nameInput" placeholder="Player1 a Player6">
-<button id="joinBtn">Unirse</button>
-<button id="resetBtn">Reiniciar</button>
-<div id="status">Esperando conexión...</div>
-<canvas id="gameCanvas" width="800" height="600"></canvas>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-<script src="script.js"></script>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Cyberball 6 jugadores (2 bots ocultos)</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: #f2f2f2;
+    }
+    #gameCanvas {
+      border: 2px solid #333;
+      background: white;
+      margin-top: 20px;
+    }
+    input, button {
+      margin: 10px;
+      padding: 10px;
+      font-size: 16px;
+    }
+    #status {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
 
+  <h1>Cyberball 6 jugadores</h1>
+  <p>Ingresá un nombre de jugador (Player1 a Player6)</p>
 
+  <input type="text" id="nameInput" placeholder="Player1 a Player6">
+  <button id="joinBtn">Unirse</button>
+  <button id="resetBtn">Reiniciar</button>
+
+  <div id="status">Esperando conexión...</div>
+
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+  <!-- Firebase SDKs (compatibles con JS tradicional) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <!-- Tu script -->
+  <script src="script.js"></script>
+
+</body>
+</html>

@@ -17,24 +17,24 @@ const ctx = canvas.getContext("2d");
 const nameInput = document.getElementById("nameInput");
 const joinBtn = document.getElementById("joinBtn");
 const resetBtn = document.getElementById("resetBtn");
-const reportBtn = document.getElementById("reportBtn"); // nuevo botón
 const statusDiv = document.getElementById("status");
 
-const players = ["Player1","Player2","Player3","Player4","Player5","Player6"];
+const players = ["Player1", "Player2", "Player3", "Player4", "Player5", "Player6"];
 const positions = [
-  {x:150,y:150},{x:400,y:100},{x:650,y:150},
-  {x:150,y:450},{x:400,y:500},{x:650,y:450}
+  { x: 150, y: 150 }, { x: 400, y: 100 }, { x: 650, y: 150 },
+  { x: 150, y: 450 }, { x: 400, y: 500 }, { x: 650, y: 450 }
 ];
 
 let playerId = null;
 let currentHolder = null;
+let botPlayers = [];
 
-// Dibuja jugadores en canvas
+// Dibuja los jugadores en el canvas
 function draw() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  players.forEach((p,i) => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  players.forEach((p, i) => {
     ctx.beginPath();
-    ctx.arc(positions[i].x, positions[i].y, 40, 0, 2*Math.PI);
+    ctx.arc(positions[i].x, positions[i].y, 40, 0, 2 * Math.PI);
     ctx.fillStyle = (p === currentHolder) ? "orange" : "lightgray";
     ctx.fill();
     ctx.stroke();
@@ -44,96 +44,98 @@ function draw() {
   });
 }
 
-// Pasar pelota y registrar pase
+// Pasar la pelota
 function passBall(toPlayer) {
-  if (currentHolder !== playerId) {
-    statusDiv.textContent = "No tienes la pelota.";
-    return;
-  }
-  const timestamp = new Date().toISOString();
+  if (currentHolder !== playerId) return;
   db.collection("game").doc("state").set({ holder: toPlayer });
-  db.collection("passes").add({
-    from: playerId,
-    to: toPlayer,
-    time: timestamp
+  db.collection("passes").add({ from: playerId, to: toPlayer, time: new Date().toISOString() });
+}
+
+// Lógica automática de bots
+function botLogic(botName) {
+  db.collection("game").doc("state").onSnapshot(doc => {
+    const holder = doc.data().holder;
+    if (holder === botName) {
+      setTimeout(() => {
+        const others = players.filter(p => p !== botName);
+        const randomTarget = others[Math.floor(Math.random() * others.length)];
+        db.collection("game").doc("state").set({ holder: randomTarget });
+        db.collection("passes").add({ from: botName, to: randomTarget, time: new Date().toISOString() });
+      }, Math.random() * 2000 + 1000); // entre 1 y 3 segundos
+    }
   });
 }
 
-// Escucha cambios en la pelota
+// Escuchar estado del juego
 function listenGameState() {
-  db.collection("game").doc("state")
-    .onSnapshot(doc => {
-      currentHolder = doc.data().holder;
-      draw();
-      statusDiv.textContent = `Pelota en: ${currentHolder}`;
-    });
+  db.collection("game").doc("state").onSnapshot(doc => {
+    if (!doc.exists) return;
+    currentHolder = doc.data().holder;
+    draw();
+    statusDiv.textContent = `Pelota en: ${currentHolder}`;
+  });
+}
+
+// Asignar bots automáticamente si no están definidos
+function assignBotsIfNeeded() {
+  db.collection("game").doc("bots").get().then(doc => {
+    if (!doc.exists) {
+      const shuffled = [...players].sort(() => 0.5 - Math.random());
+      botPlayers = shuffled.slice(0, 2);
+      db.collection("game").doc("bots").set({ bots: botPlayers });
+    } else {
+      botPlayers = doc.data().bots;
+    }
+
+    // Si este cliente es un bot, arrancar la lógica
+    if (botPlayers.includes(playerId)) {
+      botLogic(playerId);
+    }
+  });
 }
 
 // Unirse al juego
 joinBtn.onclick = () => {
   const name = nameInput.value.trim();
   if (!players.includes(name)) {
-    alert("Debés usar Player1 a Player6");
+    alert("Usá un nombre entre Player1 y Player6");
     return;
   }
   playerId = name;
   statusDiv.textContent = `Conectado como ${playerId}`;
   listenGameState();
+
   db.collection("game").doc("state").get().then(doc => {
     if (!doc.exists || !doc.data().holder) {
       db.collection("game").doc("state").set({ holder: "Player1" });
     }
   });
+
+  assignBotsIfNeeded();
   draw();
 };
 
 // Reiniciar juego
-resetBtn.onclick = async () => {
-  await db.collection("game").doc("state").set({ holder: "Player1" });
-  const passes = await db.collection("passes").get();
-  passes.forEach(doc => doc.ref.delete()); // borrar todos los pases
-  statusDiv.textContent = "Juego reiniciado";
+resetBtn.onclick = () => {
+  db.collection("game").doc("state").set({ holder: "Player1" });
+  db.collection("game").doc("bots").delete();
+  db.collection("passes").get().then(snapshot => {
+    const batch = db.batch();
+    snapshot.forEach(doc => batch.delete(doc.ref));
+    batch.commit();
+  });
+  statusDiv.textContent = "Juego reiniciado.";
   draw();
 };
 
-// Mostrar reporte de pases
-reportBtn.onclick = async () => {
-  const snapshot = await db.collection("passes").get();
-  const data = snapshot.docs.map(d => d.data());
-
-  const received = {};
-  const sent = {};
-
-  players.forEach(p => {
-    received[p] = 0;
-    sent[p] = [];
-  });
-
-  data.forEach(pass => {
-    received[pass.to]++;
-    sent[pass.from].push(pass.to);
-  });
-
-  let report = "📊 Reporte de pases:\n\n";
-  players.forEach(p => {
-    report += `${p} recibió ${received[p]} pase(s).\n`;
-  });
-
-  report += "\n🔁 Detalle de pases:\n";
-  players.forEach(p => {
-    report += `${p} pasó a: ${sent[p].join(", ") || "nadie"}\n`;
-  });
-
-  alert(report);
-};
-
-// Manejo de clic para pasar la pelota
+// Manejar clicks para pasar pelota
 canvas.addEventListener("click", e => {
   if (!playerId) return alert("Primero uníte.");
   const x = e.offsetX, y = e.offsetY;
-  players.forEach((p,i) => {
-    const dx = x - positions[i].x, dy = y - positions[i].y;
-    if (Math.hypot(dx,dy) < 40) passBall(p);
+  players.forEach((p, i) => {
+    const dx = x - positions[i].x;
+    const dy = y - positions[i].y;
+    if (Math.hypot(dx, dy) < 40) passBall(p);
   });
 });
 
